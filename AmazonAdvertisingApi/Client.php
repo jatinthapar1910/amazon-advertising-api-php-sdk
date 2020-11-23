@@ -341,9 +341,9 @@ class Client
         return $this->_operation("productAds", $data);
     }
 
-    public function listProductAdsEx($data = null)
+    public function listProductAdsEx($data = null, $type = 'sp')
     {
-        return $this->_operation("sp/productAds/extended", $data);
+        return $this->_operation("$type/productAds/extended", $data);
     }
 
     public function getAdGroupBidRecommendations($adGroupId)
