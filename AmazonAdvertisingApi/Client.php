@@ -17,7 +17,7 @@ class Client
         "sandbox" => false
     );
 
-    private $apiVersion = null;
+    public $apiVersion = null;
     private $applicationVersion = null;
     private $userAgent = null;
     private $endpoint = null;
@@ -415,6 +415,9 @@ class Client
 
     public function requestReport($recordType, $data = null, $type = 'sp')
     {
+        if ($recordType == 'productAds' && $type == 'sd')
+            $this->resetEndPointsForV3();
+
         return $this->_operation("$type/{$recordType}/report", $data, "POST");
     }
 
@@ -423,6 +426,7 @@ class Client
         $req = $this->_operation("reports/{$reportId}");
         if ($req["success"]) {
             $json = json_decode($req["response"], true);
+
             if ($json["status"] == "SUCCESS") {
                 return $this->_download($json["location"]);
             }
@@ -502,12 +506,14 @@ class Client
         $request->setOption(CURLOPT_HTTPHEADER, $headers);
         $request->setOption(CURLOPT_USERAGENT, $this->userAgent);
         $request->setOption(CURLOPT_CUSTOMREQUEST, strtoupper($method));
+
         return $this->_executeRequest($request);
     }
 
     protected function _executeRequest($request)
     {
         $response = $request->execute();
+
         $this->requestId = $request->requestId;
         $response_info = $request->getInfo();
         $request->close();
@@ -606,7 +612,11 @@ class Client
             if ($this->config["sandbox"]) {
                 $this->endpoint = "https://{$this->endpoints[$region_code]["sandbox"]}/{$this->apiVersion}";
             } else {
-                $this->endpoint = "https://{$this->endpoints[$region_code]["prod"]}/{$this->apiVersion}";
+
+                if (!is_null($this->apiVersion))
+                    $this->endpoint = "https://{$this->endpoints[$region_code]["prod"]}/{$this->apiVersion}";
+                else
+                    $this->endpoint = "https://{$this->endpoints[$region_code]["prod"]}";
             }
 
             $this->tokenUrl = $this->endpoints[$region_code]["tokenUrl"];
